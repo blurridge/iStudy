@@ -49,10 +49,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     @Throws(SQLiteConstraintException::class)
-    private fun insertTopic(db: SQLiteDatabase, topicName: String, topicCourse: String): Boolean {
+    private fun insertTopic(db: SQLiteDatabase, topic: TopicModel): Boolean {
         val values = ContentValues().apply {
-            put(TopicEntity.COLUMN_TOPIC_NAME, topicName)
-            put(TopicEntity.COLUMN_TOPIC_COURSE, topicCourse)
+            put(TopicEntity.COLUMN_TOPIC_ID, topic.topicId)
+            put(TopicEntity.COLUMN_TOPIC_NAME, topic.topicName)
+            put(TopicEntity.COLUMN_TOPIC_COURSE, topic.topicCourse)
         }
         val success = db.insert(TopicEntity.TABLE_TOPICS, null, values)
         db.close()
@@ -62,6 +63,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     @Throws(SQLiteConstraintException::class)
     private fun insertQuestion(db: SQLiteDatabase, question: QuestionModel): Boolean {
         val values = ContentValues().apply {
+            put(QuestionEntity.COLUMN_QUESTION_ID, question.questionId)
             put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
             put(QuestionEntity.COLUMN_ANSWER, question.answer)
             put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
@@ -156,13 +158,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     private fun insertDummyData(db: SQLiteDatabase) {
         val topics = listOf(
-            Pair("Science", "Physics"),
-            Pair("Math", "Algebra"),
-            Pair("History", "World History")
+            TopicModel("1", "Science", "Physics"),
+            TopicModel("2", "Math", "Algebra"),
+            TopicModel("3", "History", "World History")
         )
 
-        topics.forEach { (topicName, topicCourse) ->
-            insertTopic(db, topicName, topicCourse)
+        topics.forEach { topic ->
+            insertTopic(db, topic)
         }
 
         val questions = listOf(
