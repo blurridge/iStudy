@@ -11,7 +11,7 @@ import com.example.istudy.DBSchema.DATABASE_VERSION
 import com.example.istudy.DBSchema.TopicEntity
 import com.example.istudy.DBSchema.QuestionEntity
 
-class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
         val createTopicsTable = """
