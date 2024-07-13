@@ -2,6 +2,8 @@ package com.example.istudy
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.istudy.DBSchema.DATABASE_NAME
@@ -36,12 +38,120 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         db.execSQL(createTopicsTable)
         db.execSQL(createQuestionsTable)
+
+        insertDummyData(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS ${QuestionEntity.TABLE_QUESTIONS}")
         db.execSQL("DROP TABLE IF EXISTS ${TopicEntity.TABLE_TOPICS}")
         onCreate(db)
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    private fun insertTopic(db: SQLiteDatabase, topicName: String, topicCourse: String): Boolean {
+        val values = ContentValues().apply {
+            put(TopicEntity.COLUMN_TOPIC_NAME, topicName)
+            put(TopicEntity.COLUMN_TOPIC_COURSE, topicCourse)
+        }
+        val success = db.insert(TopicEntity.TABLE_TOPICS, null, values)
+        db.close()
+        return success != -1L
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    private fun insertQuestion(db: SQLiteDatabase, question: QuestionModel): Boolean {
+        val values = ContentValues().apply {
+            put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
+            put(QuestionEntity.COLUMN_ANSWER, question.answer)
+            put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
+            put(QuestionEntity.COLUMN_CHOICE_1, question.choice1)
+            put(QuestionEntity.COLUMN_CHOICE_2, question.choice2)
+            put(QuestionEntity.COLUMN_CHOICE_3, question.choice3)
+            put(QuestionEntity.COLUMN_CHOICE_4, question.choice4)
+        }
+        val success = db.insert(QuestionEntity.TABLE_QUESTIONS, null, values)
+        db.close()
+        return success != -1L
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    fun deleteTopic(topicId: Long): Boolean {
+        val db = writableDatabase
+        val success = db.delete(TopicEntity.TABLE_TOPICS, "${TopicEntity.COLUMN_TOPIC_ID}=?", arrayOf(topicId.toString()))
+        db.close()
+        return success != 0
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    fun deleteQuestion(questionId: Long): Boolean {
+        val db = writableDatabase
+        val success = db.delete(QuestionEntity.TABLE_QUESTIONS, "${QuestionEntity.COLUMN_QUESTION_ID}=?", arrayOf(questionId.toString()))
+        db.close()
+        return success != 0
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    fun getTopics(): List<TopicModel> {
+        val db = readableDatabase
+        val topics = mutableListOf<TopicModel>()
+        val cursor: Cursor = db.query(
+            TopicEntity.TABLE_TOPICS,
+            arrayOf(TopicEntity.COLUMN_TOPIC_ID, TopicEntity.COLUMN_TOPIC_NAME, TopicEntity.COLUMN_TOPIC_COURSE),
+            null, null, null, null, null
+        )
+
+        with(cursor) {
+            while (moveToNext()) {
+                val topicId = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_ID))
+                val topicName = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_NAME))
+                val topicCourse = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_COURSE))
+                topics.add(TopicModel(topicId, topicName, topicCourse))
+            }
+            close()
+        }
+        db.close()
+        return topics
+    }
+
+    @Throws(SQLiteConstraintException::class)
+    fun getQuestions(topicId: Long): List<QuestionModel> {
+        val db = readableDatabase
+        val questions = mutableListOf<QuestionModel>()
+        val cursor: Cursor = db.query(
+            QuestionEntity.TABLE_QUESTIONS,
+            null,
+            "${QuestionEntity.COLUMN_TOPIC_ID}=?",
+            arrayOf(topicId.toString()),
+            null, null, null
+        )
+
+        with(cursor) {
+            while (moveToNext()) {
+                val questionId = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_QUESTION_ID))
+                val questionText = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_QUESTION_TEXT))
+                val answer = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_ANSWER))
+                val choice1 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_1))
+                val choice2 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_2))
+                val choice3 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_3))
+                val choice4 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_4))
+                questions.add(
+                    QuestionModel(
+                        questionId,
+                        topicId.toString(),
+                        questionText,
+                        answer,
+                        choice1,
+                        choice2,
+                        choice3,
+                        choice4
+                    )
+                )
+            }
+            close()
+        }
+        db.close()
+        return questions
     }
 
     private fun insertDummyData(db: SQLiteDatabase) {
@@ -52,11 +162,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
 
         topics.forEach { (topicName, topicCourse) ->
-            val contentValues = ContentValues().apply {
-                put(TopicEntity.COLUMN_TOPIC_NAME, topicName)
-                put(TopicEntity.COLUMN_TOPIC_COURSE, topicCourse)
-            }
-            db.insert(TopicEntity.TABLE_TOPICS, null, contentValues)
+            insertTopic(db, topicName, topicCourse)
         }
 
         val questions = listOf(
@@ -98,16 +204,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
 
         questions.forEach { question ->
-            val contentValues = ContentValues().apply {
-                put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
-                put(QuestionEntity.COLUMN_ANSWER, question.answer)
-                put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
-                put(QuestionEntity.COLUMN_CHOICE_1, question.choice1)
-                put(QuestionEntity.COLUMN_CHOICE_2, question.choice2)
-                put(QuestionEntity.COLUMN_CHOICE_3, question.choice3)
-                put(QuestionEntity.COLUMN_CHOICE_4, question.choice4)
-            }
-            db.insert(QuestionEntity.TABLE_QUESTIONS, null, contentValues)
+            insertQuestion(db, question)
         }
     }
 }
