@@ -11,6 +11,7 @@ object DBSchema {
             const val TABLE_TOPICS = "Topics"
             const val COLUMN_TOPIC_ID = "topic_id"
             const val COLUMN_TOPIC_NAME = "topic_name"
+            const val COLUMN_TOPIC_COURSE = "course"
         }
     }
 

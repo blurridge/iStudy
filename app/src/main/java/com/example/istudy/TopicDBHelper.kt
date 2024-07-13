@@ -1,5 +1,6 @@
 package com.example.istudy
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -14,7 +15,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val createTopicsTable = """
             CREATE TABLE ${TopicEntity.TABLE_TOPICS} (
                 ${TopicEntity.COLUMN_TOPIC_ID} INTEGER PRIMARY KEY AUTOINCREMENT,
-                ${TopicEntity.COLUMN_TOPIC_NAME} TEXT NOT NULL
+                ${TopicEntity.COLUMN_TOPIC_NAME} TEXT NOT NULL,
+                ${TopicEntity.COLUMN_TOPIC_COURSE} TEXT NOT NULL
             )
         """.trimIndent()
 
@@ -40,5 +42,72 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS ${QuestionEntity.TABLE_QUESTIONS}")
         db.execSQL("DROP TABLE IF EXISTS ${TopicEntity.TABLE_TOPICS}")
         onCreate(db)
+    }
+
+    private fun insertDummyData(db: SQLiteDatabase) {
+        val topics = listOf(
+            Pair("Science", "Physics"),
+            Pair("Math", "Algebra"),
+            Pair("History", "World History")
+        )
+
+        topics.forEach { (topicName, topicCourse) ->
+            val contentValues = ContentValues().apply {
+                put(TopicEntity.COLUMN_TOPIC_NAME, topicName)
+                put(TopicEntity.COLUMN_TOPIC_COURSE, topicCourse)
+            }
+            db.insert(TopicEntity.TABLE_TOPICS, null, contentValues)
+        }
+
+        val questions = listOf(
+            // Science Questions
+            QuestionModel("1", "1", "What is the speed of light?", "299,792 km/s", "150,000 km/s", "299,792 km/s", "300,000 km/s", "100,000 km/s"),
+            QuestionModel("2", "1", "What is the chemical symbol for water?", "H2O", "H2", "O2", "H2O", "CO2"),
+            QuestionModel("3", "1", "What planet is known as the Red Planet?", "Mars", "Earth", "Venus", "Mars", "Jupiter"),
+            QuestionModel("4", "1", "What is the powerhouse of the cell?", "Mitochondria", "Nucleus", "Ribosome", "Mitochondria", "Chloroplast"),
+            QuestionModel("5", "1", "What force keeps us on the ground?", "Gravity", "Magnetism", "Electrostatic", "Gravity", "Friction"),
+            QuestionModel("6", "1", "What gas do plants absorb from the atmosphere?", "Carbon dioxide", "Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"),
+            QuestionModel("7", "1", "What is the boiling point of water?", "100°C", "0°C", "50°C", "100°C", "200°C"),
+            QuestionModel("8", "1", "What is the primary gas found in the sun?", "Hydrogen", "Oxygen", "Nitrogen", "Hydrogen", "Helium"),
+            QuestionModel("9", "1", "What is the hardest natural substance on Earth?", "Diamond", "Gold", "Iron", "Diamond", "Quartz"),
+            QuestionModel("10", "1", "What is the most abundant gas in the Earth's atmosphere?", "Nitrogen", "Oxygen", "Carbon dioxide", "Nitrogen", "Argon"),
+
+            // Math Questions
+            QuestionModel("11", "2", "What is 2 + 2?", "4", "3", "4", "5", "6"),
+            QuestionModel("12", "2", "What is the square root of 16?", "4", "2", "4", "8", "10"),
+            QuestionModel("13", "2", "What is the value of pi?", "3.14159", "3", "3.14", "3.14159", "3.2"),
+            QuestionModel("14", "2", "What is 5 factorial (5!)?", "120", "60", "120", "24", "720"),
+            QuestionModel("15", "2", "What is the solution to the equation x + 3 = 5?", "2", "1", "2", "3", "4"),
+            QuestionModel("16", "2", "What is the perimeter of a rectangle with length 5 and width 3?", "16", "8", "15", "16", "10"),
+            QuestionModel("17", "2", "What is the area of a triangle with base 4 and height 3?", "6", "7", "6", "12", "9"),
+            QuestionModel("18", "2", "What is 10% of 200?", "20", "10", "20", "30", "40"),
+            QuestionModel("19", "2", "What is the sum of the angles in a triangle?", "180 degrees", "90 degrees", "180 degrees", "360 degrees", "270 degrees"),
+            QuestionModel("20", "2", "What is the derivative of x^2?", "2x", "x", "x^2", "2x", "x^3"),
+
+            // History Questions
+            QuestionModel("21", "3", "Who discovered America?", "Christopher Columbus", "Leif Erikson", "Christopher Columbus", "Amerigo Vespucci", "Ferdinand Magellan"),
+            QuestionModel("22", "3", "When did World War II end?", "1945", "1918", "1945", "1939", "1965"),
+            QuestionModel("23", "3", "Who was the first President of the United States?", "George Washington", "Thomas Jefferson", "George Washington", "Abraham Lincoln", "John Adams"),
+            QuestionModel("24", "3", "What ancient civilization built the pyramids?", "Egyptians", "Romans", "Greeks", "Egyptians", "Mayans"),
+            QuestionModel("25", "3", "Who was known as the Maid of Orléans?", "Joan of Arc", "Marie Antoinette", "Joan of Arc", "Catherine the Great", "Queen Elizabeth I"),
+            QuestionModel("26", "3", "What year did the Titanic sink?", "1912", "1905", "1912", "1918", "1925"),
+            QuestionModel("27", "3", "Who was the famous emperor of Rome who was assassinated in 44 BC?", "Julius Caesar", "Augustus", "Nero", "Julius Caesar", "Caligula"),
+            QuestionModel("28", "3", "What was the name of the ship that brought the Pilgrims to America?", "Mayflower", "Santa Maria", "Mayflower", "Pinta", "Nina"),
+            QuestionModel("29", "3", "What war was fought between the North and South regions in the United States?", "Civil War", "Revolutionary War", "Civil War", "War of 1812", "World War I"),
+            QuestionModel("30", "3", "Who was the first woman to fly solo across the Atlantic Ocean?", "Amelia Earhart", "Harriet Quimby", "Bessie Coleman", "Amelia Earhart", "Jacqueline Cochran")
+        )
+
+        questions.forEach { question ->
+            val contentValues = ContentValues().apply {
+                put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
+                put(QuestionEntity.COLUMN_ANSWER, question.answer)
+                put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
+                put(QuestionEntity.COLUMN_CHOICE_1, question.choice1)
+                put(QuestionEntity.COLUMN_CHOICE_2, question.choice2)
+                put(QuestionEntity.COLUMN_CHOICE_3, question.choice3)
+                put(QuestionEntity.COLUMN_CHOICE_4, question.choice4)
+            }
+            db.insert(QuestionEntity.TABLE_QUESTIONS, null, contentValues)
+        }
     }
 }
