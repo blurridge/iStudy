@@ -51,19 +51,16 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     @Throws(SQLiteConstraintException::class)
     private fun insertTopic(db: SQLiteDatabase, topic: TopicModel): Boolean {
         val values = ContentValues().apply {
-            put(TopicEntity.COLUMN_TOPIC_ID, topic.topicId)
             put(TopicEntity.COLUMN_TOPIC_NAME, topic.topicName)
             put(TopicEntity.COLUMN_TOPIC_COURSE, topic.topicCourse)
         }
         val success = db.insert(TopicEntity.TABLE_TOPICS, null, values)
-        db.close()
         return success != -1L
     }
 
     @Throws(SQLiteConstraintException::class)
     private fun insertQuestion(db: SQLiteDatabase, question: QuestionModel): Boolean {
         val values = ContentValues().apply {
-            put(QuestionEntity.COLUMN_QUESTION_ID, question.questionId)
             put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
             put(QuestionEntity.COLUMN_ANSWER, question.answer)
             put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
@@ -73,7 +70,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             put(QuestionEntity.COLUMN_CHOICE_4, question.choice4)
         }
         val success = db.insert(QuestionEntity.TABLE_QUESTIONS, null, values)
-        db.close()
         return success != -1L
     }
 
@@ -105,10 +101,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
         with(cursor) {
             while (moveToNext()) {
-                val topicId = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_ID))
+                val topicId = getLong(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_ID))
                 val topicName = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_NAME))
                 val topicCourse = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_COURSE))
-                topics.add(TopicModel(topicId, topicName, topicCourse))
+                topics.add(TopicModel(topicId.toString(), topicName, topicCourse))
             }
             close()
         }
@@ -130,7 +126,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
         with(cursor) {
             while (moveToNext()) {
-                val questionId = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_QUESTION_ID))
+                val questionId = getLong(getColumnIndexOrThrow(QuestionEntity.COLUMN_QUESTION_ID))
                 val questionText = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_QUESTION_TEXT))
                 val answer = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_ANSWER))
                 val choice1 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_1))
@@ -139,7 +135,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 val choice4 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_4))
                 questions.add(
                     QuestionModel(
-                        questionId,
+                        questionId.toString(),
                         topicId.toString(),
                         questionText,
                         answer,
@@ -160,7 +156,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val topics = listOf(
             TopicModel("1", "Science", "Physics"),
             TopicModel("2", "Math", "Algebra"),
-            TopicModel("3", "History", "World History")
+            TopicModel("3", "History", "World History"),
         )
 
         topics.forEach { topic ->
@@ -183,26 +179,26 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             // Math Questions
             QuestionModel("11", "2", "What is 2 + 2?", "4", "3", "4", "5", "6"),
             QuestionModel("12", "2", "What is the square root of 16?", "4", "2", "4", "8", "10"),
-            QuestionModel("13", "2", "What is the value of pi?", "3.14159", "3", "3.14", "3.14159", "3.2"),
-            QuestionModel("14", "2", "What is 5 factorial (5!)?", "120", "60", "120", "24", "720"),
-            QuestionModel("15", "2", "What is the solution to the equation x + 3 = 5?", "2", "1", "2", "3", "4"),
-            QuestionModel("16", "2", "What is the perimeter of a rectangle with length 5 and width 3?", "16", "8", "15", "16", "10"),
-            QuestionModel("17", "2", "What is the area of a triangle with base 4 and height 3?", "6", "7", "6", "12", "9"),
-            QuestionModel("18", "2", "What is 10% of 200?", "20", "10", "20", "30", "40"),
-            QuestionModel("19", "2", "What is the sum of the angles in a triangle?", "180 degrees", "90 degrees", "180 degrees", "360 degrees", "270 degrees"),
-            QuestionModel("20", "2", "What is the derivative of x^2?", "2x", "x", "x^2", "2x", "x^3"),
+            QuestionModel("13", "2", "What is the value of π (pi)?", "3.14", "2.17", "3.14", "1.41", "2.71"),
+            QuestionModel("14", "2", "What is 5 * 6?", "30", "20", "30", "25", "36"),
+            QuestionModel("15", "2", "What is 9 / 3?", "3", "6", "3", "9", "12"),
+            QuestionModel("16", "2", "What is the perimeter of a rectangle with sides 3 and 4?", "14", "7", "14", "12", "10"),
+            QuestionModel("17", "2", "What is the area of a circle with radius 1?", "π", "π", "2π", "π²", "2π²"),
+            QuestionModel("18", "2", "What is 10 - 3?", "7", "7", "6", "8", "5"),
+            QuestionModel("19", "2", "What is the value of the Golden Ratio (φ)?", "1.618", "1.618", "2.718", "3.142", "0.577"),
+            QuestionModel("20", "2", "What is the sum of angles in a triangle?", "180°", "180°", "90°", "360°", "270°"),
 
             // History Questions
-            QuestionModel("21", "3", "Who discovered America?", "Christopher Columbus", "Leif Erikson", "Christopher Columbus", "Amerigo Vespucci", "Ferdinand Magellan"),
-            QuestionModel("22", "3", "When did World War II end?", "1945", "1918", "1945", "1939", "1965"),
-            QuestionModel("23", "3", "Who was the first President of the United States?", "George Washington", "Thomas Jefferson", "George Washington", "Abraham Lincoln", "John Adams"),
-            QuestionModel("24", "3", "What ancient civilization built the pyramids?", "Egyptians", "Romans", "Greeks", "Egyptians", "Mayans"),
-            QuestionModel("25", "3", "Who was known as the Maid of Orléans?", "Joan of Arc", "Marie Antoinette", "Joan of Arc", "Catherine the Great", "Queen Elizabeth I"),
-            QuestionModel("26", "3", "What year did the Titanic sink?", "1912", "1905", "1912", "1918", "1925"),
-            QuestionModel("27", "3", "Who was the famous emperor of Rome who was assassinated in 44 BC?", "Julius Caesar", "Augustus", "Nero", "Julius Caesar", "Caligula"),
-            QuestionModel("28", "3", "What was the name of the ship that brought the Pilgrims to America?", "Mayflower", "Santa Maria", "Mayflower", "Pinta", "Nina"),
-            QuestionModel("29", "3", "What war was fought between the North and South regions in the United States?", "Civil War", "Revolutionary War", "Civil War", "War of 1812", "World War I"),
-            QuestionModel("30", "3", "Who was the first woman to fly solo across the Atlantic Ocean?", "Amelia Earhart", "Harriet Quimby", "Bessie Coleman", "Amelia Earhart", "Jacqueline Cochran")
+            QuestionModel("21", "3", "Who was the first president of the United States?", "George Washington", "Abraham Lincoln", "George Washington", "Thomas Jefferson", "John Adams"),
+            QuestionModel("22", "3", "What year did World War II end?", "1945", "1939", "1941", "1945", "1949"),
+            QuestionModel("23", "3", "Who was known as the Maid of Orléans?", "Joan of Arc", "Marie Curie", "Joan of Arc", "Eleanor of Aquitaine", "Catherine de' Medici"),
+            QuestionModel("24", "3", "What ancient civilization built the pyramids?", "Egyptians", "Mayans", "Egyptians", "Romans", "Greeks"),
+            QuestionModel("25", "3", "Who wrote the 'Iliad' and the 'Odyssey'?", "Homer", "Plato", "Aristotle", "Homer", "Sophocles"),
+            QuestionModel("26", "3", "Who was the British prime minister during World War II?", "Winston Churchill", "Neville Chamberlain", "Winston Churchill", "Clement Attlee", "Margaret Thatcher"),
+            QuestionModel("27", "3", "What event started World War I?", "Assassination of Archduke Franz Ferdinand", "Sinking of the Lusitania", "Zimmermann Telegram", "Assassination of Archduke Franz Ferdinand", "Treaty of Versailles"),
+            QuestionModel("28", "3", "Who discovered penicillin?", "Alexander Fleming", "Louis Pasteur", "Alexander Fleming", "Marie Curie", "Gregor Mendel"),
+            QuestionModel("29", "3", "What was the name of the ship that brought the Pilgrims to America?", "Mayflower", "Santa Maria", "Mayflower", "Beagle", "Endeavour"),
+            QuestionModel("30", "3", "What was the name of the first manned mission to land on the moon?", "Apollo 11", "Gemini 8", "Apollo 11", "Apollo 13", "Apollo 7")
         )
 
         questions.forEach { question ->
