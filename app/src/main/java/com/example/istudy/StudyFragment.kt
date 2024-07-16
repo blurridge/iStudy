@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.istudy.databinding.FragmentStudyBinding
 
-class StudyFragment : Fragment(), StudyAdapter.OnItemClickListener {
+class StudyFragment : Fragment() {
     private lateinit var binding: FragmentStudyBinding
     private lateinit var dbHelper: DBHelper
 
@@ -35,16 +35,11 @@ class StudyFragment : Fragment(), StudyAdapter.OnItemClickListener {
             Toast.makeText(requireContext(), "No topics available", Toast.LENGTH_SHORT).show()
         } else {
             // Create instance of the adapter and pass the topics for display
-            val adapter = StudyAdapter(topics, this)
+            val adapter = StudyAdapter(topics)
             binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
             // Sets the custom adapter made for the recycler view
             binding.recyclerView.adapter = adapter
         }
-    }
-
-    override fun onItemClick(topic: TopicModel) {
-        Toast.makeText(requireContext(), "Clicked on ${topic.topicName}", Toast.LENGTH_SHORT).show()
-        // IF TOPIC CLICKED HERE
     }
 }
