@@ -1,9 +1,11 @@
 package com.example.istudy
 
+import android.content.Intent
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -23,6 +25,7 @@ class StudyAdapter(
     inner class TopicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val topicNameTextView: TextView = itemView.findViewById(R.id.topicNameTextView)
         val topicCourseTextView: TextView = itemView.findViewById(R.id.topicCourseTextView)
+        val takeQuizButton: Button = itemView.findViewById(R.id.takeQuizButton)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TopicViewHolder {
@@ -40,6 +43,15 @@ class StudyAdapter(
         // Cycle through the colors list and apply the background color to the item view
         val backgroundColor = colors[position % colors.size]
         holder.itemView.setBackgroundColor(backgroundColor)
+
+        // Button for taking quiz
+        holder.takeQuizButton.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, TakeQuizActivity::class.java).apply {
+                putExtra("TOPIC_ID", currentItem.topicId)
+            }
+            context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = topics.size
