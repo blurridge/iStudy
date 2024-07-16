@@ -36,11 +36,11 @@ class StudyAdapter(
     override fun onBindViewHolder(holder: TopicViewHolder, position: Int) {
         val currentItem = topics[position] // Gets the TopicModel from a specified position
 
-        // Set the text for TextViews
+        // Holders are like setters
         holder.topicNameTextView.text = currentItem.topicName
         holder.topicCourseTextView.text = currentItem.topicCourse
 
-        // Cycle through the colors list and apply the background color to the item view
+        // Iterate through the color list so it will have different colors
         val backgroundColor = colors[position % colors.size]
         holder.itemView.setBackgroundColor(backgroundColor)
 
