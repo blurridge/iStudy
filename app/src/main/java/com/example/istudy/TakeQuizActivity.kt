@@ -77,8 +77,7 @@ class TakeQuizActivity : AppCompatActivity() {
         if (currentQuestionIndex < questions.size) {
             displayQuestion(currentQuestionIndex)
         } else {
-            // Handle the end of the quiz
-            // e.g., show a completion message or finish activity
+            // After all questions are done
         } */
     }
 }
