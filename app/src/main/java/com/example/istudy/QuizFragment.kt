@@ -1,5 +1,8 @@
 package com.example.istudy
 
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,11 +18,14 @@ class QuizFragment : Fragment() {
     private lateinit var dbHelper: DBHelper
     private lateinit var questions: List<QuestionModel>
     private var currentQuestionIndex = 0
+    private val totalQuestions: Int get() = questions.size
+    private var correctAnswerPosition = -1
+    private var score = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentQuizBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -33,11 +39,13 @@ class QuizFragment : Fragment() {
             insets
         }
 
+        score = 0
+
         val topicId = requireActivity().intent.getStringExtra("TOPIC_ID") ?: return
 
         dbHelper = DBHelper(requireContext())
 
-        questions = dbHelper.getQuestions(topicId.toLong())
+        questions = dbHelper.getQuestions(topicId.toLong()).shuffled() // Shuffle questions for random order
 
         if (questions.isNotEmpty()) {
             displayQuestion(0)
@@ -49,31 +57,38 @@ class QuizFragment : Fragment() {
         binding.choice2Button.setOnClickListener { checkAnswer(2) }
         binding.choice3Button.setOnClickListener { checkAnswer(3) }
         binding.choice4Button.setOnClickListener { checkAnswer(4) }
+        binding.backButton.setOnClickListener { navigateBackToMain() }
     }
 
     private fun displayQuestion(index: Int) {
         val question = questions[index]
         binding.questionTextView.text = question.question
-        binding.choice1Button.text = question.choice1
-        binding.choice2Button.text = question.choice2
-        binding.choice3Button.text = question.choice3
-        binding.choice4Button.text = question.choice4
+
+        val shuffledChoices = question.getShuffledChoices()
+        binding.choice1Button.text = shuffledChoices[0]
+        binding.choice2Button.text = shuffledChoices[1]
+        binding.choice3Button.text = shuffledChoices[2]
+        binding.choice4Button.text = shuffledChoices[3]
+
+        // Store the correct answer's position for later checking
+        correctAnswerPosition = shuffledChoices.indexOf(question.answer)
+
+        // Update progress bar
+        updateProgressBar()
     }
 
     private fun checkAnswer(selectedChoice: Int) {
-        val question = questions[currentQuestionIndex]
-        val correctAnswer = question.answer
-
-        val selectedAnswer = when (selectedChoice) {
-            1 -> question.choice1
-            2 -> question.choice2
-            3 -> question.choice3
-            4 -> question.choice4
-            else -> ""
+        val selectedAnswerPosition = when (selectedChoice) {
+            1 -> 0
+            2 -> 1
+            3 -> 2
+            4 -> 3
+            else -> -1
         }
 
-        if (selectedAnswer == correctAnswer) {
+        if (selectedAnswerPosition == correctAnswerPosition) {
             // For Correct Answer
+            score++
         } else {
             // For Wrong Answer
         }
@@ -84,6 +99,35 @@ class QuizFragment : Fragment() {
             displayQuestion(currentQuestionIndex)
         } else {
             // After all questions are done
+            showScore()
         }
+    }
+
+    private fun updateProgressBar() {
+        val progress = ((currentQuestionIndex + 1).toFloat() / totalQuestions.toFloat()) * 100
+
+        // Animate progress bar
+        val animator = ValueAnimator.ofInt(binding.progressBar.progress, progress.toInt())
+        animator.duration = 500 // Duration in milliseconds
+        animator.addUpdateListener { animation ->
+            binding.progressBar.progress = animation.animatedValue as Int
+        }
+        animator.start()
+    }
+
+    private fun navigateBackToMain() {
+        startActivity(Intent(requireContext(), MainActivity::class.java))
+        requireActivity().finish() // Optional: Finish the current activity if you want to close it
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showScore() {
+        val scoreMessage = "Your score is $score out of $totalQuestions"
+        binding.questionTextView.text = scoreMessage
+        binding.choice1Button.visibility = View.GONE
+        binding.choice2Button.visibility = View.GONE
+        binding.choice3Button.visibility = View.GONE
+        binding.choice4Button.visibility = View.GONE
+        binding.backButton.text = "Exit"
     }
 }

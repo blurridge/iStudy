@@ -10,5 +10,8 @@ class QuestionModel(
     val choice3: String,
     val choice4: String
 ) {
-
+    fun getShuffledChoices(): List<String> {
+        val choices = listOf(choice1, choice2, choice3, choice4)
+        return choices.shuffled()
+    }
 }

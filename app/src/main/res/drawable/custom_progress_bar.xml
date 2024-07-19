@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<clip>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background of the progress bar -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/darker_gray"/>
+            <corners android:radius="8dp"/> <!-- Set the corner radius -->
+            <size android:height="8dp"/> <!-- Set the height to adjust thickness -->
+        </shape>
+    </item>
+
+    <!-- Progress of the progress bar -->
+    <item android:id="@android:id/progress">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#2575FC"
+                android:endColor="#6A11CB"
+                android:angle="0"/>
+            <corners android:radius="4dp"/> <!-- Set the corner radius -->
+            <size android:height="8dp"/> <!-- Set the height to adjust thickness -->
+        </shape>
+    </item>
+</layer-list>
+</clip>
