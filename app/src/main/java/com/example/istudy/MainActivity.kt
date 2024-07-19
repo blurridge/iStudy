@@ -37,7 +37,8 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         binding.toolbarButton.setOnClickListener {
-            // Handle toolbar button click
+            val dialog = UploadPdfDialogFragment()
+            dialog.show(supportFragmentManager, "UploadPdfDialogFragment")
         }
         // ====================END OF TOOLBAR ============================================
 
