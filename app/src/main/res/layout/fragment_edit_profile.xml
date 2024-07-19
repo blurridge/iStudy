@@ -7,7 +7,7 @@
     android:padding="16dp">
 
     <ImageView
-        android:id="@+id/profileImageView"
+        android:id="@+id/editProfileImageView"
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:contentDescription="Profile Picture"
@@ -22,28 +22,41 @@
         app:layout_constraintVertical_bias="0.345"
         tools:ignore="HardcodedText" />
 
-    <TextView
-        android:id="@+id/profileNameTextView"
+    <EditText
+        android:id="@+id/editProfileNameEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:hint="Your Name"
         android:gravity="center"
-        android:text=""
+        android:inputType="text"
+        android:paddingTop="0dp"
         android:textColorHint="#78909C"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profileImageView"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintTop_toBottomOf="@id/editProfileImageView"
+        tools:ignore="Autofill,HardcodedText" />
+
+
+    <ImageButton
+        android:id="@+id/editProfileButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/edit_name_foreground"
+        android:text="Change Image"
+        app:layout_constraintBottom_toTopOf="@+id/editProfileImageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="ContentDescription,HardcodedText,SpeakableTextPresentCheck" />
 
     <Button
-        android:id="@+id/editProfileButton"
+        android:id="@+id/saveProfileButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Edit"
+        android:text="Save"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:ignore="HardcodedText" />

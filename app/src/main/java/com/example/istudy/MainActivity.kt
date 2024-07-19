@@ -1,6 +1,7 @@
 package com.example.istudy
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        binding.toolbarButton.setOnClickListener {
+        binding.uploadButton.setOnClickListener {
             val dialog = UploadPdfDialogFragment()
             dialog.show(supportFragmentManager, "UploadPdfDialogFragment")
         }
@@ -46,10 +47,12 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
+                    binding.uploadButton.visibility = View.VISIBLE
                     replaceFragment(StudyFragment())
                     true
                 }
                 R.id.navigation_profile -> {
+                    binding.uploadButton.visibility = View.GONE
                     replaceFragment(ProfileFragment())
                     true
                 }

@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 
 class StudyAdapter(
     private val topics: List<TopicModel>
@@ -42,8 +43,9 @@ class StudyAdapter(
         holder.topicCourseTextView.text = currentItem.topicCourse
 
         // Iterate through the color list so it will have different colors
+        val cardView = holder.itemView as MaterialCardView
         val backgroundColor = colors[position % colors.size]
-        holder.itemView.setBackgroundColor(backgroundColor)
+        cardView.setCardBackgroundColor(backgroundColor)
 
         // Button for taking quiz
         holder.takeQuizButton.setOnClickListener {
