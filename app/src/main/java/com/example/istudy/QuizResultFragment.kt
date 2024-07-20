@@ -1,6 +1,7 @@
 package com.example.istudy
 
 import android.content.Context
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,9 @@ class ScoreFragment : Fragment() {
 
     private var _binding: FragmentQuizResultBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var failSound: MediaPlayer
+    private lateinit var successSound: MediaPlayer
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,6 +33,9 @@ class ScoreFragment : Fragment() {
         val score = arguments?.getInt("SCORE") ?: 0
         val totalQuestions = arguments?.getInt("TOTAL_QUESTIONS") ?: 0
 
+        failSound = MediaPlayer.create(requireContext(), R.raw.fail)
+        successSound = MediaPlayer.create(requireContext(), R.raw.success)
+
         // Retrieve user name from SharedPreferences
         val sharedPreferences = requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val userName = sharedPreferences.getString("USER_NAME", "User") ?: "User"
@@ -36,10 +43,12 @@ class ScoreFragment : Fragment() {
         // Set score and user name
         binding.scoreTextView.text = "$score/$totalQuestions"
         if(score>=totalQuestions/2){
+            successSound.start()
             binding.parentLayout.background = ContextCompat.getDrawable(requireContext(), R.drawable.green_gradient)
             binding.resultDescription.text = "Congratulations $userName, You got ${(score.toFloat() / totalQuestions * 100).toInt()}% of the questions right!"
         }
         else {
+            failSound.start()
             binding.parentLayout.background = ContextCompat.getDrawable(requireContext(), R.drawable.red_gradient)
             binding.resultDescription.text = "You can do better $userName, You got ${(score.toFloat() / totalQuestions * 100).toInt()}% of the questions right!"
         }
@@ -57,6 +66,8 @@ class ScoreFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        failSound.release()
+        successSound.release()
         _binding = null
     }
 }

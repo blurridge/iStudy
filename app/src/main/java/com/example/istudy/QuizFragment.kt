@@ -2,6 +2,7 @@ package com.example.istudy
 
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +22,9 @@ class QuizFragment : Fragment() {
     private var correctAnswerPosition = -1
     private var score = 0
 
+    private lateinit var triesSound: MediaPlayer
+    private lateinit var correctSound: MediaPlayer
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,6 +41,10 @@ class QuizFragment : Fragment() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // Initialize MediaPlayer instances
+        correctSound = MediaPlayer.create(requireContext(), R.raw.correct)
+        triesSound = MediaPlayer.create(requireContext(), R.raw.tries)
 
         score = 0
 
@@ -108,9 +116,11 @@ class QuizFragment : Fragment() {
 
         if (selectedAnswerPosition == correctAnswerPosition) {
             // For Correct Answer
+            correctSound.start()
             score++
         } else {
             // For Wrong Answer
+            triesSound.start()
         }
 
         // Go to next question or if done
@@ -141,6 +151,8 @@ class QuizFragment : Fragment() {
     }
 
     private fun showScore() {
+        // Play success or fail sound based on score
+
         val scoreFragment = ScoreFragment()
         val bundle = Bundle().apply {
             putInt("SCORE", score)
@@ -153,5 +165,11 @@ class QuizFragment : Fragment() {
             .replace(R.id.fragmentContainerView2, scoreFragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        triesSound.release()
+        correctSound.release()
     }
 }
