@@ -2,6 +2,7 @@ package com.example.istudy
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -38,6 +39,10 @@ class MainActivity : AppCompatActivity() {
         // ====================TOOLBAR SET-UP ============================================
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        binding.deleteIcon.setOnClickListener {
+            showToastMessage()
+        }
 
         binding.uploadButton.setOnClickListener {
             val dialog = UploadPdfDialogFragment()
@@ -79,5 +84,10 @@ class MainActivity : AppCompatActivity() {
 
     fun refreshStudyFragmentData() {
         studyFragment.refreshData()
+    }
+
+    private fun showToastMessage() {
+        val message = "Long press the topic to delete."
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }
