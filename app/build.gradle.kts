@@ -65,4 +65,6 @@ dependencies {
     implementation("com.itextpdf:itextg:5.5.10")
     implementation("com.aallam.openai:openai-client:3.8.1")
     implementation("io.ktor:ktor-client-okhttp:2.0.0")
+    implementation("com.squareup.picasso:picasso:2.71828")
+
 }

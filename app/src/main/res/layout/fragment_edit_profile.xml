@@ -22,23 +22,24 @@
         app:layout_constraintVertical_bias="0.345"
         tools:ignore="HardcodedText" />
 
+
     <EditText
         android:id="@+id/editProfileNameEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="Your Name"
+        android:layout_marginTop="28dp"
         android:gravity="center"
+        android:hint="Your Name"
         android:inputType="text"
         android:paddingTop="0dp"
         android:textColorHint="#78909C"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editProfileImageView"
         tools:ignore="Autofill,HardcodedText" />
-
 
     <ImageButton
         android:id="@+id/editProfileButton"

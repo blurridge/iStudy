@@ -1,7 +1,6 @@
 package com.example.istudy
 
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -41,7 +40,7 @@ class QuizFragment : Fragment() {
 
         score = 0
 
-        val topicId = requireActivity().intent.getLongExtra("TOPIC_ID", -1) ?: return
+        val topicId = requireActivity().intent.getLongExtra("TOPIC_ID", -1)
 
         dbHelper = DBHelper(requireContext())
 
@@ -58,6 +57,27 @@ class QuizFragment : Fragment() {
         binding.choice3Button.setOnClickListener { checkAnswer(3) }
         binding.choice4Button.setOnClickListener { checkAnswer(4) }
         binding.backButton.setOnClickListener { navigateBackToMain() }
+
+        savedInstanceState?.let {
+            if (it.getBoolean("RESTART_QUIZ", false)) {
+                resetQuiz()
+            }
+        }
+    }
+
+    private fun resetQuiz() {
+        // Reset quiz state
+        score = 0
+        currentQuestionIndex = 0
+        // Load questions again if needed
+        val topicId = requireActivity().intent.getLongExtra("TOPIC_ID", -1)
+        dbHelper = DBHelper(requireContext())
+        questions = dbHelper.getQuestions(topicId).shuffled()
+        if (questions.isNotEmpty()) {
+            displayQuestion(0)
+        } else {
+            binding.questionTextView.text = "No questions available for this topic."
+        }
     }
 
     private fun displayQuestion(index: Int) {
@@ -120,14 +140,18 @@ class QuizFragment : Fragment() {
         requireActivity().finish() // Optional: Finish the current activity if you want to close it
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showScore() {
-        val scoreMessage = "Your score is $score out of $totalQuestions"
-        binding.questionTextView.text = scoreMessage
-        binding.choice1Button.visibility = View.GONE
-        binding.choice2Button.visibility = View.GONE
-        binding.choice3Button.visibility = View.GONE
-        binding.choice4Button.visibility = View.GONE
-        binding.backButton.text = "Exit"
+        val scoreFragment = ScoreFragment()
+        val bundle = Bundle().apply {
+            putInt("SCORE", score)
+            putInt("TOTAL_QUESTIONS", totalQuestions)
+            putBoolean("RESTART_QUIZ", true) // Flag to indicate quiz restart
+        }
+        scoreFragment.arguments = bundle
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainerView2, scoreFragment)
+            .addToBackStack(null)
+            .commit()
     }
 }

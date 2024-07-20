@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.istudy.databinding.FragmentProfileBinding
+import com.squareup.picasso.Picasso
 
 class ProfileFragment : Fragment() {
 
@@ -35,7 +36,7 @@ class ProfileFragment : Fragment() {
         }
 
         profileViewModel.profileImageUri.observe(viewLifecycleOwner) { uri ->
-            binding.profileImageView.setImageURI(uri)
+            Picasso.get().load(uri).into(binding.profileImageView)
         }
 
         binding.editProfileButton.setOnClickListener {
