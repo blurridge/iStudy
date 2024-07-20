@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.istudy.databinding.FragmentQuizResultBinding
@@ -37,11 +36,11 @@ class ScoreFragment : Fragment() {
         // Set score and user name
         binding.scoreTextView.text = "$score/$totalQuestions"
         if(score>=totalQuestions/2){
-            ContextCompat.getDrawable(requireContext(), R.drawable.green_gradient)
+            binding.parentLayout.background = ContextCompat.getDrawable(requireContext(), R.drawable.green_gradient)
             binding.resultDescription.text = "Congratulations $userName, You got ${(score.toFloat() / totalQuestions * 100).toInt()}% of the questions right!"
         }
         else {
-            ContextCompat.getDrawable(requireContext(), R.drawable.red_gradient)
+            binding.parentLayout.background = ContextCompat.getDrawable(requireContext(), R.drawable.red_gradient)
             binding.resultDescription.text = "You can do better $userName, You got ${(score.toFloat() / totalQuestions * 100).toInt()}% of the questions right!"
         }
         binding.tryAgainButton.setOnClickListener {

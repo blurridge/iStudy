@@ -12,22 +12,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 
 class StudyAdapter(
-    private var topics: MutableList<TopicModel>,  // Changed from List to MutableList
+    private var topics: MutableList<TopicModel>,
     private val context: Context
 ) : RecyclerView.Adapter<StudyAdapter.TopicViewHolder>() {
 
-    private val dbHelper = DBHelper(context) // Initialize DBHelper
+    private val dbHelper = DBHelper(context)
     private val colors = listOf(
-        Color.parseColor("#FFEBEE"), // Light Red
-        Color.parseColor("#FFF3E0"), // Light Orange
-        Color.parseColor("#FFFDE7"), // Light Yellow
-        Color.parseColor("#E8F5E9"), // Light Green
-        Color.parseColor("#E3F2FD"), // Light Blue
-        Color.parseColor("#F3E5F5")  // Light Purple
+        Color.parseColor("#FFEBEE"),
+        Color.parseColor("#FFF3E0"),
+        Color.parseColor("#FFFDE7"),
+        Color.parseColor("#E8F5E9"),
+        Color.parseColor("#E3F2FD"),
+        Color.parseColor("#F3E5F5")
     )
 
     inner class TopicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -53,17 +54,15 @@ class StudyAdapter(
         cardView.setCardBackgroundColor(backgroundColor)
 
         holder.takeQuizButton.setOnClickListener {
-            val context = holder.itemView.context
             val intent = Intent(context, TakeQuizActivity::class.java).apply {
                 putExtra("TOPIC_ID", currentItem.topicId)
             }
             context.startActivity(intent)
         }
 
-        // Long press to delete the card
         val handler = Handler(Looper.getMainLooper())
         val runnable = Runnable {
-            removeTopicAt(position)
+            showConfirmationDialog(position)
         }
 
         holder.itemView.setOnLongClickListener {
@@ -71,7 +70,7 @@ class StudyAdapter(
             true
         }
 
-        holder.itemView.setOnTouchListener { _, event ->
+        holder.itemView.setOnTouchListener { _, _ ->
             handler.removeCallbacks(runnable)
             false
         }
@@ -85,9 +84,24 @@ class StudyAdapter(
         notifyDataSetChanged()
     }
 
+    private fun showConfirmationDialog(position: Int) {
+        val alertDialog = AlertDialog.Builder(context)
+            .setTitle("Delete Topic")
+            .setMessage("Are you sure you want to delete this Topic?")
+            .setPositiveButton("Yes") { _, _ ->
+                removeTopicAt(position)
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+
+        alertDialog.show()
+    }
+
     private fun removeTopicAt(position: Int) {
         val topicId = topics[position].topicId
-        if (dbHelper.deleteTopic(topicId)) { // Remove from database
+        if (dbHelper.deleteTopic(topicId)) {
             topics.removeAt(position)
             notifyItemRemoved(position)
         } else {
