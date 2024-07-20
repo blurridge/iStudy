@@ -16,6 +16,8 @@ import kotlinx.serialization.json.Json
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS ${QuestionEntity.TABLE_QUESTIONS}")
+        db.execSQL("DROP TABLE IF EXISTS ${TopicEntity.TABLE_TOPICS}")
         val createTopicsTable = """
             CREATE TABLE ${TopicEntity.TABLE_TOPICS} (
                 ${TopicEntity.COLUMN_TOPIC_ID} INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +39,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 FOREIGN KEY(${QuestionEntity.COLUMN_TOPIC_ID}) REFERENCES ${TopicEntity.TABLE_TOPICS}(${TopicEntity.COLUMN_TOPIC_ID})
             )
         """.trimIndent()
-
         db.execSQL(createTopicsTable)
         db.execSQL(createQuestionsTable)
 
@@ -91,7 +92,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
     @Throws(SQLiteConstraintException::class)
-    fun getTopics(): List<TopicModel> {
+    fun getTopics(): MutableList<TopicModel> {
         val db = readableDatabase
         val topics = mutableListOf<TopicModel>()
         val cursor: Cursor = db.query(
@@ -158,19 +159,33 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val flashcardResponse = Json.decodeFromString<FlashcardResponse>(responseText)
         val db = writableDatabase
 
-        // Insert the topic and retrieve the generated topicId
+        // Insert the topic
         val topic = TopicModel(
             topicName = flashcardResponse.topic_name,
             topicCourse = flashcardResponse.course
         )
-        val topicId = insertTopic(db, topic)
+        insertTopic(db, topic)
+
+        // Retrieve the topic ID
+        val topicIdCursor = db.query(
+            DBSchema.TopicEntity.TABLE_TOPICS,
+            arrayOf(DBSchema.TopicEntity.COLUMN_TOPIC_ID),
+            "${DBSchema.TopicEntity.COLUMN_TOPIC_NAME} = ? AND ${DBSchema.TopicEntity.COLUMN_TOPIC_COURSE} = ?",
+            arrayOf(flashcardResponse.topic_name, flashcardResponse.course),
+            null, null, null
+        )
+        var topicId: Long = -1
+        if (topicIdCursor.moveToFirst()) {
+            topicId = topicIdCursor.getLong(topicIdCursor.getColumnIndexOrThrow(DBSchema.TopicEntity.COLUMN_TOPIC_ID))
+        }
+        topicIdCursor.close()
 
         // Insert the questions
         flashcardResponse.questions.forEach { question ->
             val questionModel = QuestionModel(
+                topicId = topicId,
                 question = question.question,
                 answer = question.answer,
-                topicId = topicId,
                 choice1 = question.choice1,
                 choice2 = question.choice2,
                 choice3 = question.choice3,

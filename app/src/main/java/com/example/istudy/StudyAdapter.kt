@@ -1,7 +1,11 @@
 package com.example.istudy
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +16,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 
 class StudyAdapter(
-    private val topics: List<TopicModel>
+    private var topics: MutableList<TopicModel>,  // Changed from List to MutableList
+    private val context: Context
 ) : RecyclerView.Adapter<StudyAdapter.TopicViewHolder>() {
 
+    private val dbHelper = DBHelper(context) // Initialize DBHelper
     private val colors = listOf(
         Color.parseColor("#FFEBEE"), // Light Red
         Color.parseColor("#FFF3E0"), // Light Orange
@@ -35,19 +41,17 @@ class StudyAdapter(
         return TopicViewHolder(itemView)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: TopicViewHolder, position: Int) {
-        val currentItem = topics[position] // Gets the TopicModel from a specified position
+        val currentItem = topics[position]
 
-        // Holders are like setters
         holder.topicNameTextView.text = currentItem.topicName
         holder.topicCourseTextView.text = currentItem.topicCourse
 
-        // Iterate through the color list so it will have different colors
         val cardView = holder.itemView as MaterialCardView
         val backgroundColor = colors[position % colors.size]
         cardView.setCardBackgroundColor(backgroundColor)
 
-        // Button for taking quiz
         holder.takeQuizButton.setOnClickListener {
             val context = holder.itemView.context
             val intent = Intent(context, TakeQuizActivity::class.java).apply {
@@ -55,7 +59,39 @@ class StudyAdapter(
             }
             context.startActivity(intent)
         }
+
+        // Long press to delete the card
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = Runnable {
+            removeTopicAt(position)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            handler.postDelayed(runnable, 3000) // 3 seconds delay
+            true
+        }
+
+        holder.itemView.setOnTouchListener { _, event ->
+            handler.removeCallbacks(runnable)
+            false
+        }
     }
 
     override fun getItemCount() = topics.size
+
+    fun updateTopics(newTopics: List<TopicModel>) {
+        topics.clear()
+        topics.addAll(newTopics)
+        notifyDataSetChanged()
+    }
+
+    private fun removeTopicAt(position: Int) {
+        val topicId = topics[position].topicId
+        if (dbHelper.deleteTopic(topicId)) { // Remove from database
+            topics.removeAt(position)
+            notifyItemRemoved(position)
+        } else {
+            Log.e("StudyAdapter", "Failed to delete topic from database")
+        }
+    }
 }

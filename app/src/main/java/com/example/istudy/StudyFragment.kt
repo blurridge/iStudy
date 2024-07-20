@@ -12,6 +12,7 @@ import com.example.istudy.databinding.FragmentStudyBinding
 class StudyFragment : Fragment() {
     private lateinit var binding: FragmentStudyBinding
     private lateinit var dbHelper: DBHelper
+    private lateinit var adapter: StudyAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,22 +25,24 @@ class StudyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize DBHelper using  fragment's context
+        // Initialize DBHelper using fragment's context
         dbHelper = DBHelper(requireContext())
 
         // Get topic function from db helper
         val topics = dbHelper.getTopics()
 
+        // Initialize the adapter with the list of topics (which might be empty)
+        adapter = StudyAdapter(topics.toMutableList(), requireContext())
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.adapter = adapter
 
         if (topics.isEmpty()) {
             Toast.makeText(requireContext(), "No topics available", Toast.LENGTH_SHORT).show()
-        } else {
-            // Create instance of the adapter and pass the topics for display
-            val adapter = StudyAdapter(topics)
-            binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-            // Sets the custom adapter made for the recycler view
-            binding.recyclerView.adapter = adapter
         }
+    }
+
+    fun refreshData() {
+        val newTopics = dbHelper.getTopics()
+        adapter.updateTopics(newTopics)
     }
 }

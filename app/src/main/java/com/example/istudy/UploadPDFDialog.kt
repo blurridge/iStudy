@@ -123,7 +123,7 @@ class UploadPdfDialogFragment : DialogFragment() {
                         ChatMessage(
                             role = Role.User,
                             content = """
-                        Based on the following notes, create 10 flashcards. Each flashcard should have a question, an answer, and four multiple-choice options. The output should be in the following JSON format:
+                        Based on the following notes, create 10 flashcards. Each flashcard should have a question, an answer, and four multiple-choice options. The output should be in the following format:
 
                         {
                             "topic_name": "Topic derived from notes",
@@ -154,6 +154,8 @@ class UploadPdfDialogFragment : DialogFragment() {
 
                 val responseText = response.choices.firstOrNull()?.message?.content ?: "No response"
                 Log.d("UploadPdfDialogFragment", "Response: $responseText")
+                val dbHelper = DBHelper(requireContext())
+                dbHelper.insertFlashcards(responseText)
 
                 withContext(Dispatchers.Main) {
                     binding.progressBar.visibility = View.GONE
@@ -161,6 +163,7 @@ class UploadPdfDialogFragment : DialogFragment() {
                     binding.submitButton.isEnabled = true
                     binding.closeButton.isEnabled = true
                     Toast.makeText(requireContext(), "Flashcards generated successfully", Toast.LENGTH_SHORT).show()
+                    (activity as? MainActivity)?.refreshStudyFragmentData()
                     dismiss()
                 }
 

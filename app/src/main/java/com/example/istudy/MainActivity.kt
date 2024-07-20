@@ -12,6 +12,7 @@ import com.example.istudy.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private lateinit var dbHelper: DBHelper
     private lateinit var binding: ActivityMainBinding
+    private lateinit var studyFragment: StudyFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +31,8 @@ class MainActivity : AppCompatActivity() {
 
         // FRAGMENT INITIAL SETUP
         if (savedInstanceState == null) {
-            replaceFragment(StudyFragment())
+            studyFragment = StudyFragment()
+            replaceFragment(studyFragment)
         }
 
         // ====================TOOLBAR SET-UP ============================================
@@ -73,5 +75,9 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainerView, fragment)
             .commit()
+    }
+
+    fun refreshStudyFragmentData() {
+        studyFragment.refreshData()
     }
 }
