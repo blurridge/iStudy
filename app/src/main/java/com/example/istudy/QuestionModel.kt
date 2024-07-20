@@ -1,8 +1,8 @@
 package com.example.istudy
 
 class QuestionModel(
-    val questionId: String,
-    val topicId: String,
+    val questionId: Long = 0,
+    val topicId: Long,
     val question: String,
     val answer: String,
     val choice1: String,

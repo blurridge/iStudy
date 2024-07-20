@@ -1,5 +1,6 @@
 package com.example.istudy
 
+import FlashcardResponse
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -10,6 +11,7 @@ import com.example.istudy.DBSchema.DATABASE_NAME
 import com.example.istudy.DBSchema.DATABASE_VERSION
 import com.example.istudy.DBSchema.TopicEntity
 import com.example.istudy.DBSchema.QuestionEntity
+import kotlinx.serialization.json.Json
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -49,13 +51,12 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
     @Throws(SQLiteConstraintException::class)
-    private fun insertTopic(db: SQLiteDatabase, topic: TopicModel): Boolean {
+    private fun insertTopic(db: SQLiteDatabase, topic: TopicModel): Long {
         val values = ContentValues().apply {
             put(TopicEntity.COLUMN_TOPIC_NAME, topic.topicName)
             put(TopicEntity.COLUMN_TOPIC_COURSE, topic.topicCourse)
         }
-        val success = db.insert(TopicEntity.TABLE_TOPICS, null, values)
-        return success != -1L
+        return db.insert(TopicEntity.TABLE_TOPICS, null, values)
     }
 
     @Throws(SQLiteConstraintException::class)
@@ -63,7 +64,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val values = ContentValues().apply {
             put(QuestionEntity.COLUMN_QUESTION_TEXT, question.question)
             put(QuestionEntity.COLUMN_ANSWER, question.answer)
-            put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId.toInt())
+            put(QuestionEntity.COLUMN_TOPIC_ID, question.topicId)
             put(QuestionEntity.COLUMN_CHOICE_1, question.choice1)
             put(QuestionEntity.COLUMN_CHOICE_2, question.choice2)
             put(QuestionEntity.COLUMN_CHOICE_3, question.choice3)
@@ -104,7 +105,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 val topicId = getLong(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_ID))
                 val topicName = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_NAME))
                 val topicCourse = getString(getColumnIndexOrThrow(TopicEntity.COLUMN_TOPIC_COURSE))
-                topics.add(TopicModel(topicId.toString(), topicName, topicCourse))
+                topics.add(TopicModel(topicId, topicName, topicCourse))
             }
             close()
         }
@@ -135,8 +136,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 val choice4 = getString(getColumnIndexOrThrow(QuestionEntity.COLUMN_CHOICE_4))
                 questions.add(
                     QuestionModel(
-                        questionId.toString(),
-                        topicId.toString(),
+                        questionId,
+                        topicId,
                         questionText,
                         answer,
                         choice1,
@@ -152,11 +153,40 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return questions
     }
 
+    @Throws(SQLiteConstraintException::class)
+    fun insertFlashcards(responseText: String) {
+        val flashcardResponse = Json.decodeFromString<FlashcardResponse>(responseText)
+        val db = writableDatabase
+
+        // Insert the topic and retrieve the generated topicId
+        val topic = TopicModel(
+            topicName = flashcardResponse.topic_name,
+            topicCourse = flashcardResponse.course
+        )
+        val topicId = insertTopic(db, topic)
+
+        // Insert the questions
+        flashcardResponse.questions.forEach { question ->
+            val questionModel = QuestionModel(
+                question = question.question,
+                answer = question.answer,
+                topicId = topicId,
+                choice1 = question.choice1,
+                choice2 = question.choice2,
+                choice3 = question.choice3,
+                choice4 = question.choice4
+            )
+            insertQuestion(db, questionModel)
+        }
+
+        db.close()
+    }
+
     private fun insertDummyData(db: SQLiteDatabase) {
         val topics = listOf(
-            TopicModel("1", "Science", "Physics"),
-            TopicModel("2", "Math", "Algebra"),
-            TopicModel("3", "History", "World History"),
+            TopicModel(topicId = 1, topicName = "Science", topicCourse = "Physics"),
+            TopicModel(topicId = 2, topicName = "Math", topicCourse = "Algebra"),
+            TopicModel(topicId = 3, topicName = "History", topicCourse = "World History"),
         )
 
         topics.forEach { topic ->
@@ -165,40 +195,40 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
         val questions = listOf(
             // Science Questions
-            QuestionModel("1", "1", "What is the speed of light?", "299,792 km/s", "150,000 km/s", "299,792 km/s", "300,000 km/s", "100,000 km/s"),
-            QuestionModel("2", "1", "What is the chemical symbol for water?", "H2O", "H2", "O2", "H2O", "CO2"),
-            QuestionModel("3", "1", "What planet is known as the Red Planet?", "Mars", "Earth", "Venus", "Mars", "Jupiter"),
-            QuestionModel("4", "1", "What is the powerhouse of the cell?", "Mitochondria", "Nucleus", "Ribosome", "Mitochondria", "Chloroplast"),
-            QuestionModel("5", "1", "What force keeps us on the ground?", "Gravity", "Magnetism", "Electrostatic", "Gravity", "Friction"),
-            QuestionModel("6", "1", "What gas do plants absorb from the atmosphere?", "Carbon dioxide", "Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"),
-            QuestionModel("7", "1", "What is the boiling point of water?", "100°C", "0°C", "50°C", "100°C", "200°C"),
-            QuestionModel("8", "1", "What is the primary gas found in the sun?", "Hydrogen", "Oxygen", "Nitrogen", "Hydrogen", "Helium"),
-            QuestionModel("9", "1", "What is the hardest natural substance on Earth?", "Diamond", "Gold", "Iron", "Diamond", "Quartz"),
-            QuestionModel("10", "1", "What is the most abundant gas in the Earth's atmosphere?", "Nitrogen", "Oxygen", "Carbon dioxide", "Nitrogen", "Argon"),
+            QuestionModel(questionId = 1, topicId = 1, question = "What is the speed of light?", answer = "299,792 km/s", choice1 = "150,000 km/s", choice2 = "299,792 km/s", choice3 = "300,000 km/s", choice4 = "100,000 km/s"),
+            QuestionModel(questionId = 2, topicId = 1, question = "What is the chemical symbol for water?", answer = "H2O", choice1 = "H2", choice2 = "O2", choice3 = "H2O", choice4 = "CO2"),
+            QuestionModel(questionId = 3, topicId = 1, question = "What planet is known as the Red Planet?", answer = "Mars", choice1 = "Earth", choice2 = "Venus", choice3 = "Mars", choice4 = "Jupiter"),
+            QuestionModel(questionId = 4, topicId = 1, question = "What is the powerhouse of the cell?", answer = "Mitochondria", choice1 = "Nucleus", choice2 = "Ribosome", choice3 = "Mitochondria", choice4 = "Chloroplast"),
+            QuestionModel(questionId = 5, topicId = 1, question = "What force keeps us on the ground?", answer = "Gravity", choice1 = "Magnetism", choice2 = "Electrostatic", choice3 = "Gravity", choice4 = "Friction"),
+            QuestionModel(questionId = 6, topicId = 1, question = "What gas do plants absorb from the atmosphere?", answer = "Carbon dioxide", choice1 = "Oxygen", choice2 = "Nitrogen", choice3 = "Carbon dioxide", choice4 = "Hydrogen"),
+            QuestionModel(questionId = 7, topicId = 1, question = "What is the boiling point of water?", answer = "100°C", choice1 = "0°C", choice2 = "50°C", choice3 = "100°C", choice4 = "200°C"),
+            QuestionModel(questionId = 8, topicId = 1, question = "What is the primary gas found in the sun?", answer = "Hydrogen", choice1 = "Oxygen", choice2 = "Nitrogen", choice3 = "Hydrogen", choice4 = "Helium"),
+            QuestionModel(questionId = 9, topicId = 1, question = "What is the hardest natural substance on Earth?", answer = "Diamond", choice1 = "Gold", choice2 = "Iron", choice3 = "Diamond", choice4 = "Quartz"),
+            QuestionModel(questionId = 10, topicId = 1, question = "What is the most abundant gas in the Earth's atmosphere?", answer = "Nitrogen", choice1 = "Oxygen", choice2 = "Carbon dioxide", choice3 = "Nitrogen", choice4 = "Argon"),
 
             // Math Questions
-            QuestionModel("11", "2", "What is 2 + 2?", "4", "3", "4", "5", "6"),
-            QuestionModel("12", "2", "What is the square root of 16?", "4", "2", "4", "8", "10"),
-            QuestionModel("13", "2", "What is the value of π (pi)?", "3.14", "2.17", "3.14", "1.41", "2.71"),
-            QuestionModel("14", "2", "What is 5 * 6?", "30", "20", "30", "25", "36"),
-            QuestionModel("15", "2", "What is 9 / 3?", "3", "6", "3", "9", "12"),
-            QuestionModel("16", "2", "What is the perimeter of a rectangle with sides 3 and 4?", "14", "7", "14", "12", "10"),
-            QuestionModel("17", "2", "What is the area of a circle with radius 1?", "π", "π", "2π", "π²", "2π²"),
-            QuestionModel("18", "2", "What is 10 - 3?", "7", "7", "6", "8", "5"),
-            QuestionModel("19", "2", "What is the value of the Golden Ratio (φ)?", "1.618", "1.618", "2.718", "3.142", "0.577"),
-            QuestionModel("20", "2", "What is the sum of angles in a triangle?", "180°", "180°", "90°", "360°", "270°"),
+            QuestionModel(questionId = 11, topicId = 2, question = "What is 2 + 2?", answer = "4", choice1 = "3", choice2 = "4", choice3 = "5", choice4 = "6"),
+            QuestionModel(questionId = 12, topicId = 2, question = "What is the square root of 16?", answer = "4", choice1 = "2", choice2 = "4", choice3 = "8", choice4 = "10"),
+            QuestionModel(questionId = 13, topicId = 2, question = "What is the value of π (pi)?", answer = "3.14", choice1 = "2.17", choice2 = "3.14", choice3 = "1.41", choice4 = "2.71"),
+            QuestionModel(questionId = 14, topicId = 2, question = "What is 5 * 6?", answer = "30", choice1 = "20", choice2 = "30", choice3 = "25", choice4 = "36"),
+            QuestionModel(questionId = 15, topicId = 2, question = "What is 9 / 3?", answer = "3", choice1 = "6", choice2 = "3", choice3 = "9", choice4 = "12"),
+            QuestionModel(questionId = 16, topicId = 2, question = "What is the perimeter of a rectangle with sides 3 and 4?", answer = "14", choice1 = "7", choice2 = "14", choice3 = "12", choice4 = "10"),
+            QuestionModel(questionId = 17, topicId = 2, question = "What is the area of a circle with radius 1?", answer = "π", choice1 = "π", choice2 = "2π", choice3 = "π²", choice4 = "2π²"),
+            QuestionModel(questionId = 18, topicId = 2, question = "What is 10 - 3?", answer = "7", choice1 = "7", choice2 = "6", choice3 = "8", choice4 = "5"),
+            QuestionModel(questionId = 19, topicId = 2, question = "What is the value of the Golden Ratio (φ)?", answer = "1.618", choice1 = "1.618", choice2 = "2.718", choice3 = "3.142", choice4 = "0.577"),
+            QuestionModel(questionId = 20, topicId = 2, question = "What is the sum of angles in a triangle?", answer = "180°", choice1 = "180°", choice2 = "90°", choice3 = "360°", choice4 = "270°"),
 
             // History Questions
-            QuestionModel("21", "3", "Who was the first president of the United States?", "George Washington", "Abraham Lincoln", "George Washington", "Thomas Jefferson", "John Adams"),
-            QuestionModel("22", "3", "What year did World War II end?", "1945", "1939", "1941", "1945", "1949"),
-            QuestionModel("23", "3", "Who was known as the Maid of Orléans?", "Joan of Arc", "Marie Curie", "Joan of Arc", "Eleanor of Aquitaine", "Catherine de' Medici"),
-            QuestionModel("24", "3", "What ancient civilization built the pyramids?", "Egyptians", "Mayans", "Egyptians", "Romans", "Greeks"),
-            QuestionModel("25", "3", "Who wrote the 'Iliad' and the 'Odyssey'?", "Homer", "Plato", "Aristotle", "Homer", "Sophocles"),
-            QuestionModel("26", "3", "Who was the British prime minister during World War II?", "Winston Churchill", "Neville Chamberlain", "Winston Churchill", "Clement Attlee", "Margaret Thatcher"),
-            QuestionModel("27", "3", "What event started World War I?", "Assassination of Archduke Franz Ferdinand", "Sinking of the Lusitania", "Zimmermann Telegram", "Assassination of Archduke Franz Ferdinand", "Treaty of Versailles"),
-            QuestionModel("28", "3", "Who discovered penicillin?", "Alexander Fleming", "Louis Pasteur", "Alexander Fleming", "Marie Curie", "Gregor Mendel"),
-            QuestionModel("29", "3", "What was the name of the ship that brought the Pilgrims to America?", "Mayflower", "Santa Maria", "Mayflower", "Beagle", "Endeavour"),
-            QuestionModel("30", "3", "What was the name of the first manned mission to land on the moon?", "Apollo 11", "Gemini 8", "Apollo 11", "Apollo 13", "Apollo 7")
+            QuestionModel(questionId = 21, topicId = 3, question = "Who was the first president of the United States?", answer = "George Washington", choice1 = "Abraham Lincoln", choice2 = "George Washington", choice3 = "Thomas Jefferson", choice4 = "John Adams"),
+            QuestionModel(questionId = 22, topicId = 3, question = "What year did World War II end?", answer = "1945", choice1 = "1939", choice2 = "1941", choice3 = "1945", choice4 = "1949"),
+            QuestionModel(questionId = 23, topicId = 3, question = "Who was known as the Maid of Orléans?", answer = "Joan of Arc", choice1 = "Marie Curie", choice2 = "Joan of Arc", choice3 = "Eleanor of Aquitaine", choice4 = "Catherine de' Medici"),
+            QuestionModel(questionId = 24, topicId = 3, question = "What ancient civilization built the pyramids?", answer = "Egyptians", choice1 = "Mayans", choice2 = "Egyptians", choice3 = "Romans", choice4 = "Greeks"),
+            QuestionModel(questionId = 25, topicId = 3, question = "Who wrote the 'Iliad' and the 'Odyssey'?", answer = "Homer", choice1 = "Plato", choice2 = "Aristotle", choice3 = "Homer", choice4 = "Sophocles"),
+            QuestionModel(questionId = 26, topicId = 3, question = "Who was the British prime minister during World War II?", answer = "Winston Churchill", choice1 = "Neville Chamberlain", choice2 = "Winston Churchill", choice3 = "Clement Attlee", choice4 = "Margaret Thatcher"),
+            QuestionModel(questionId = 27, topicId = 3, question = "What event started World War I?", answer = "Assassination of Archduke Franz Ferdinand", choice1 = "Sinking of the Lusitania", choice2 = "Zimmermann Telegram", choice3 = "Assassination of Archduke Franz Ferdinand", choice4 = "Treaty of Versailles"),
+            QuestionModel(questionId = 28, topicId = 3, question = "Who discovered penicillin?", answer = "Alexander Fleming", choice1 = "Louis Pasteur", choice2 = "Alexander Fleming", choice3 = "Marie Curie", choice4 = "Gregor Mendel"),
+            QuestionModel(questionId = 29, topicId = 3, question = "What was the name of the ship that brought the Pilgrims to America?", answer = "Mayflower", choice1 = "Santa Maria", choice2 = "Mayflower", choice3 = "Beagle", choice4 = "Endeavour"),
+            QuestionModel(questionId = 30, topicId = 3, question = "What was the name of the first manned mission to land on the moon?", answer = "Apollo 11", choice1 = "Gemini 8", choice2 = "Apollo 11", choice3 = "Apollo 13", choice4 = "Apollo 7")
         )
 
         questions.forEach { question ->
