@@ -38,6 +38,15 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIES")
+        exclude("META-INF/LICENSE")
+        exclude("META-INF/LICENSE.txt")
+        exclude("META-INF/license.txt")
+        exclude("META-INF/NOTICE")
+        exclude("META-INF/NOTICE.txt")
+        exclude("META-INF/notice.txt")
+    }
 }
 
 dependencies {
@@ -52,4 +61,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("com.itextpdf:itextg:5.5.10")
+    implementation("com.aallam.openai:openai-client:3.8.1")
+    implementation("io.ktor:ktor-client-okhttp:2.0.0")
 }
