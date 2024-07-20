@@ -41,11 +41,11 @@ class QuizFragment : Fragment() {
 
         score = 0
 
-        val topicId = requireActivity().intent.getStringExtra("TOPIC_ID") ?: return
+        val topicId = requireActivity().intent.getLongExtra("TOPIC_ID", -1) ?: return
 
         dbHelper = DBHelper(requireContext())
 
-        questions = dbHelper.getQuestions(topicId.toLong()).shuffled() // Shuffle questions for random order
+        questions = dbHelper.getQuestions(topicId).shuffled() // Shuffle questions for random order
 
         if (questions.isNotEmpty()) {
             displayQuestion(0)
