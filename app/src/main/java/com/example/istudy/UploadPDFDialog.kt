@@ -123,7 +123,7 @@ class UploadPdfDialogFragment : DialogFragment() {
                         ChatMessage(
                             role = Role.User,
                             content = """
-                        Based on the following notes, create 10 flashcards. Each flashcard should have a question, an answer, and four multiple-choice options. The output should be in the following format:
+                        Based on the following notes, create 10 flashcards. Each flashcard should have a question, an answer, and four multiple-choice options. The output should be in the following format. Do not write anything else.:
 
                         {
                             "topic_name": "Topic derived from notes",
